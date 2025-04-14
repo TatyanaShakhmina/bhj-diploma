@@ -41,14 +41,16 @@ class TransactionsPage {
       this.removeAccount();
     });
 
-    const transactionRemoveBtn = document.querySelector('.transaction__remove');
-    if (transactionRemoveBtn) {
-      const transactionId = transactionRemoveBtn.getAttribute('data-id');
-      transactionRemoveBtn.addEventListener('click', (e) => {
+    this.element.addEventListener('click', (e) => {
+      const target = e.target;
+
+      const removeBtn = target.closest('.transaction__remove');
+      if (removeBtn) {
         e.preventDefault();
+        const transactionId = removeBtn.getAttribute('data-id');
         this.removeTransaction(transactionId);
-      });
-    }
+      }
+    });
   }
 
   /**
@@ -65,8 +67,13 @@ class TransactionsPage {
 
     const confirmDeletion = confirm("Вы действительно хотите удалить счёт?");
     if (confirmDeletion) {
-      Account.remove({ id: this.lastOptions.account_id }, (response) => {
-        if (response.success) {
+      Account.remove({ id: this.lastOptions.account_id }, (err, response) => {
+        if (err) {
+          console.error('Ошибка при удалении:', err);
+          return;
+        }
+
+        if (response && response.success) {
           App.updateWidgets();
           App.updateForms();
         }
@@ -83,8 +90,13 @@ class TransactionsPage {
   removeTransaction( id ) {
     const confirmDeletion = confirm("Вы действительно хотите удалить эту транзакцию?");
     if (confirmDeletion) {
-      Transaction.remove({ id: id }, (response) => {
-        if (response.success) {
+      Transaction.remove({ id: id }, (err, response) => {
+        if (err) {
+          console.error('Ошибка при удалении:', err);
+          return;
+        }
+
+        if (response && response.success) {
           App.update();
         }
       });
@@ -102,13 +114,15 @@ class TransactionsPage {
 
     this.lastOptions = options;
 
-    Account.get(options.account_id, (response) => {
-      if (response.success) {
+    Account.get(options.account_id, (err, response) => {
+      if (response && response.success) {
         this.renderTitle(response.name);
       }
     });
-    Transaction.list({ account_id: options.account_id }, (response) => {
-      this.renderTransactions(response);
+    Transaction.list({ account_id: options.account_id }, (err, response)  => {
+      if (response && response.success) {
+        this.renderTransactions(response.data);
+      }
     });
   }
 
@@ -136,10 +150,10 @@ class TransactionsPage {
    * в формат «10 марта 2019 г. в 03:20»
    * */
   formatDate(date){
-    const options = { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' };
-    const formattedDate = date.toLocaleDateString('ru-RU', options);
-    const time = date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-    return `${formattedDate} в ${time}`;
+    const curlDate = new Date(date); // <== важно!
+    const options = { day: 'numeric', month: 'long', year: 'numeric' };
+    const time = curlDate.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+    return `${curlDate.toLocaleDateString('ru-RU', options)} в ${time}`;
   }
 
   /**
@@ -180,12 +194,10 @@ class TransactionsPage {
    * */
   renderTransactions(data){
     const contentContainer = this.element.querySelector('.content');
-    if (contentContainer) {
-      contentContainer.innerHTML = '';
-      data.forEach(transaction => {
-        const transactionHTML = this.getTransactionHTML(transaction);
-        contentContainer.insertAdjacentHTML('beforeend', transactionHTML);
-      });
-    }
+    if (!contentContainer) return;
+
+    contentContainer.innerHTML = data.reduce((acc, transaction) => {
+      return acc + this.getTransactionHTML(transaction);
+    }, '');
   }
 }

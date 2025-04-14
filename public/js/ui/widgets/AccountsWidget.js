@@ -32,20 +32,21 @@ class AccountsWidget {
    * */
   registerEvents() {
     const createAccountBtn = document.querySelector('.create-account');
-    const newAccount = App.getModal('modal-new-account');
     createAccountBtn.addEventListener('click', (e) => {
       e.preventDefault();
-      const modal = new Modal(newAccount);
-      modal.open();
+      App.getModal('createAccount').open();
     });
 
-    const accountBtns = document.querySelectorAll('.account');
-    accountBtns.forEach(function(accountBtn) {
-      accountBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        this.onSelectAccount(accountBtn);
+    const accountsPanel = document.querySelector('.accounts-panel');
+    if (accountsPanel) {
+      accountsPanel.addEventListener('click', (e) => {
+        const accountElement = e.target.closest('.account');
+        if (accountElement) {
+          e.preventDefault();
+          this.onSelectAccount(accountElement);
+        }
       });
-    });
+    }
   }
 
   /**
@@ -61,11 +62,19 @@ class AccountsWidget {
   update() {
     const user = User.current();
     if (user) {
-      const account = new Account();
-      const accounts = account.list(user, callback);
-      accounts.forEach(account => {
-        this.clear();
-        this.renderItem(account);
+      Account.list(user, (err, response) => {
+        if (err) {
+          console.error('Ошибка при получении счетов:', err);
+          return;
+        }
+
+        if (response && response.success) {
+          this.clear();
+
+          response.data.forEach(account => {
+            this.renderItem(account);
+          });
+        }
       });
     }
   }
@@ -76,8 +85,7 @@ class AccountsWidget {
    * в боковой колонке
    * */
   clear() {
-    const accountsList = this.element.querySelector('.accounts-panel');
-    const accountItems = accountsList.querySelectorAll('.account');
+    const accountItems = this.element.querySelectorAll('.account');
     accountItems.forEach(item => item.remove());
   }
 
@@ -122,7 +130,6 @@ class AccountsWidget {
    * и добавляет его внутрь элемента виджета
    * */
   renderItem(data){
-    const accountsList = this.element.querySelector('.accounts-panel');
-    accountsList.insertAdjacentHTML('beforeend', this.getAccountHTML(data));
+    this.element.insertAdjacentHTML('beforeend', this.getAccountHTML(data));
   }
 }

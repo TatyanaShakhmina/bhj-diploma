@@ -41,21 +41,27 @@ class Sidebar {
     const logoutBtn = document.querySelector('.menu-item_logout');
 
     const registerModal = App.getModal('register');
-    registerBtn.addEventListener('click', function () {
-      const modal = new Modal(registerModal);
-      modal.open();
+    const loginModal = App.getModal('login');
+
+    registerBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      registerModal.open();
     });
 
-    const loginModal = App.getModal('login');
-    loginBtn.addEventListener('click', function () {
-      const modal = new Modal(loginModal);
-      modal.open();
+    loginBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      loginModal.open();
     });
 
     logoutBtn.addEventListener('click', (e)=> {
       e.preventDefault();
-      User.logout((response) => {
-        if (response.success) {
+      User.logout((err, response) => {
+        if (err) {
+          console.error('Ошибка:', err);
+          return;
+        }
+
+        if (response && response.success) {
           App.setState( 'init' );
         }
       });

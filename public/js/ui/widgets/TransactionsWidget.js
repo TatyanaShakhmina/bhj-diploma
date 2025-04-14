@@ -27,7 +27,7 @@ class TransactionsWidget {
    * */
   registerEvents() {
     const createIncomeBtn = document.querySelector('.create-income-button');
-    const modalNewIncome = App.getModal('modal-new-income');
+    const modalNewIncome = App.getModal('newIncome');
     createIncomeBtn.addEventListener('click', (e) => {
       e.preventDefault();
       const modal = new Modal(modalNewIncome);
@@ -35,7 +35,7 @@ class TransactionsWidget {
     });
 
     const createExpenseBtn = document.querySelector('.create-expense-button');
-    const modalNewExpense = App.getModal('modal-new-expense');
+    const modalNewExpense = App.getModal('newExpense');
     createExpenseBtn.addEventListener('click', (e) => {
       e.preventDefault();
       const modal = new Modal(modalNewExpense);

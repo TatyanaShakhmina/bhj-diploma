@@ -17,18 +17,20 @@ class CreateTransactionForm extends AsyncForm {
    * Обновляет в форме всплывающего окна выпадающий список
    * */
   renderAccountsList() {
-    Account.list(User.current(), (response) => {
-      const selectElement = this.element.querySelector('#expense-accounts-list');
+    Account.list(User.current(), (err, response) => {
+      if (err) {
+        console.error('Ошибка при получении списка счётов:', err);
+        return;
+      }
 
-      if (response && selectElement) {
-        selectElement.innerHTML = '';
+      if (response && response.success) {
+        const selectElement = this.element.querySelector('.accounts-select');
 
-        response.forEach(account => {
-          const option = document.createElement('option');
-          option.value = account.id;
-          option.textContent = account.name;
-          selectElement.appendChild(option);
-        });
+        if (!selectElement) return;
+
+        selectElement.innerHTML = response.data.reduce((acc, account) => {
+          return acc + `<option value="${account.id}">${account.name}</option>`;
+        }, '');
       }
     });
   }
@@ -40,13 +42,17 @@ class CreateTransactionForm extends AsyncForm {
    * в котором находится форма
    * */
   onSubmit(data) {
-    Transaction.create(data, (response) => {
-      if (response.success) {
+    Transaction.create(data, (err, response) => {
+      if (err) {
+        console.error('Ошибка при создании новой транзакции:', err);
+        return;
+      }
+
+      if (response && response.success) {
         App.update();
         this.element.reset();
-        const newTransaction = App.getModal('modal-new-transaction');
-        const modal = new Modal(newTransaction);
-        modal.close();
+        const modalName = data.type === 'income' ? 'newIncome' : 'newExpense';
+        App.getModal(modalName).close();
       }
     });
   }

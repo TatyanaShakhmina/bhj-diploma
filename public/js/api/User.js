@@ -4,7 +4,7 @@
  * Имеет свойство URL, равное '/user'.
  * */
 class User {
-  static URL = '/user';
+  static url = '/user';
   /**
    * Устанавливает текущего пользователя в
    * локальном хранилище.
@@ -39,9 +39,9 @@ class User {
    * авторизованном пользователе.
    * */
   static fetch(callback) {
-    const URL = `${this.URL}/current`;
+    const url = `${this.url}/current`;
     createRequest({
-      URL: URL,
+      url: url,
       data: User.current(),
       method: 'GET',
       callback: (err, response) => {
@@ -63,7 +63,7 @@ class User {
    * */
   static login(data, callback) {
     createRequest({
-      url: this.URL + '/login',
+      url: this.url + '/login',
       data: data,
       method: 'POST',
       callback: (err, response) => {
@@ -83,7 +83,7 @@ class User {
    * */
   static register(data, callback) {
     createRequest({
-      url: this.URL + '/register',
+      url: this.url + '/register',
       data: data,
       method: 'POST',
       callback: (err, response) => {
@@ -101,7 +101,7 @@ class User {
    * */
   static logout(callback) {
     createRequest({
-      url: this.URL + '/logout',
+      url: this.url + '/logout',
       data: User.current(),
       method: 'POST',
       callback: (err, response) => {

@@ -3,45 +3,36 @@
  * на сервер.
  * */
 const createRequest = (options = {}) => {
-    const { URL, data, method, callback } = options;
-    const xhr = new XMLHttpRequest();
-    let curUrl = URL;
+    const { url, data, method, callback = () => {} } = options;
 
+    const xhr = new XMLHttpRequest();
     xhr.responseType = 'json';
 
-    const formData = new FormData();
+    let curUrl = url;
+    let formData = null;
+
+    if (method === 'GET' && data) {
+        const queryParams = new URLSearchParams(data).toString();
+        curUrl = `${url}?${queryParams}`;
+    } else if (data) {
+        formData = new FormData();
+        for (let key in data) {
+            formData.append(key, data[key]);
+        }
+    }
+
+    xhr.onload = function () {
+        callback(null, xhr.response);
+    };
+
+    xhr.onerror = function () {
+        callback(new Error('Network error'), null);
+    };
+
     try {
-        if (method === 'GET' && data) {
-            const queryParams = new URLSearchParams(data).toString();
-            curUrl = `${URL}?${queryParams}`;
-            xhr.send();
-        } else {
-            for (let key in data) {
-                formData.append(key, data[key]);
-            }
-        }
-
         xhr.open(method, curUrl);
-        if (method === 'GET')
-            xhr.send();
-        else
-        {
-            xhr.send(formData);
-        }
-
-        xhr.onload = function () {
-            if (xhr.status === 200) {
-                if (callback) callback(null, xhr.response);
-            } else {
-                if (callback) callback(new Error(`Request failed with status: ${xhr.status}`), null);
-            }
-        };
-
-        xhr.onerror = function () {
-            if (callback) callback(new Error('Network error'), null);
-        };
-
+        xhr.send(formData);
     } catch (e) {
-        if (callback) callback(e, null);
+        callback(e, null);
     }
 };
