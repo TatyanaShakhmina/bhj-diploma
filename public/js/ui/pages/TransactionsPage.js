@@ -74,8 +74,8 @@ class TransactionsPage {
         }
 
         if (response && response.success) {
-          App.updateWidgets();
-          App.updateForms();
+          App.update();
+          this.clear();
         }
       });
     }
@@ -116,7 +116,7 @@ class TransactionsPage {
 
     Account.get(options.account_id, (err, response) => {
       if (response && response.success) {
-        this.renderTitle(response.name);
+        this.renderTitle(response.data.name);
       }
     });
     Transaction.list({ account_id: options.account_id }, (err, response)  => {
